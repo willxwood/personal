@@ -1,0 +1,63 @@
+
+import pygsheets
+import pandas as pd 
+import numpy as np 
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import NoSuchElementException
+from holmium.core import Page, Element, Elements, Locators
+
+driver = webdriver.Chrome()
+wait = WebDriverWait(driver, 60)
+
+class User(Page):
+	main_window = driver.current_window_handle
+	username = Element(Locators.ID, "id_username", timeout=1)
+	password = Element(Locators.ID, "id_password", timeout=1)
+	submit = Element(Locators.CSS_SELECTOR, 'input[type="submit"]', timeout=1)
+	save = Element(Locators.CSS_SELECTOR, 'input[value="Save"]', timeout=1)
+	results = Element(Locators.CSS_SELECTOR, "div.member-search-results", timeout=1)
+
+
+
+def getUser():
+	d = User(driver, url="http://www.xxxxx.com/")
+	driver.set_window_size(1200, 900)
+	try:
+		driver.find_element_by_tag_name("td")
+	except NoSuchElementException:
+		print ("LOG IN FORM")
+		d.username.send_keys("xxxxx@xxxxx.com")
+		d.password.send_keys("*******")
+		d.submit.click()
+		print("LOGGED IN")
+	else:
+		print("ALREADY LOGGED IN")
+
+client = pygsheets.authorize()
+
+workbook = client.open('xxxxx')
+wks = workbook.worksheet_by_title('xxxxxxxx')
+df = wks.get_as_df(has_header=True,start='xxx',end='xxxxx',empty_value=None)
+
+xx = df.head(1)
+
+for index, row in xx.iterrows(): 
+	site = 'https://www.xxxxx.com/' + str(row[0]) + '/change/'
+	comment = str(row[1])
+	driver.get(site)
+	d.comments.send_keys(comment)
+
+	d.save.click()
+
+
+def tearDown():
+	driver.quit()
+
+if __name__ == "__main__":
+	getUser()
+
+
+
