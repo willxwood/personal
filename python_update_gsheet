@@ -1,0 +1,39 @@
+import psycopg2
+import pygsheets
+import requests
+import pandas as pd
+import numpy as np
+
+def executeSQL(recruit_query):
+    # Open and read the file as a single buffer
+    fd = open(recruit_query, 'r')
+    sqlFile = fd.read()
+    fd.close()
+
+    try:
+        cur.execute(sqlFile)
+        col = pd.DataFrame([desc[0] for desc in cur.description])
+        col.columns = ['field_names']
+        rows = pd.DataFrame(cur.fetchall())
+        rows.columns = col.field_names
+        return rows
+    except Exception as inst:
+        print("Command skipped: ", inst);
+
+
+conn = psycopg2.connect("dbname='xxxxxxxx' user='xxxxxxx' host='xxxxxxxxxx' password='*********' port=1111111")
+cur = conn.cursor()
+client = pygsheets.authorize()
+
+
+df = executeSQL('xxxxxx.sql')
+df2 = executeSQL('xxxxxxx.sql')
+
+
+workbook = client.open('xxxxxxxx')
+wks = workbook[0]
+wks2 = workbook[1]
+wks.clear(start='A1',end='P1000')
+wks.set_dataframe(df, (2, 1))
+wks2.clear(start='A1',end='P1000')
+wks2.set_dataframe(df2, (2, 1))
